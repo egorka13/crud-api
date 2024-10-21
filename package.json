@@ -7,7 +7,8 @@
     "build": "tsc && webpack",
     "start:dev": "ts-node-dev src/index.ts",
     "start:prod": "npm run build && node dist/bundle.js",
-    "start:multi": "ts-node src/cluster.ts"
+    "start:multi": "ts-node src/cluster.ts",
+    "test": "jest"
   },
   "keywords": [
     "nodejs"

@@ -15,7 +15,7 @@ import { User } from './models/User';
 
 const PORT = process.env.PORT || 3000;
 
-const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
+export const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
   if (req.method === 'GET' && req.url === '/api/users') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify(getUsers()));
