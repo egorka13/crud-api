@@ -1,31 +1,36 @@
-import http from 'http';
+import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
-import { users } from './data/users';
+import {
+  addUser,
+  deleteUser,
+  findUserById,
+  findUserIndexById,
+  getUsers,
+  updateUser,
+} from './data/users';
 import { User } from './models/User';
 
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer((req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-
+const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
   if (req.method === 'GET' && req.url === '/api/users') {
-    res.writeHead(200);
-    res.end(JSON.stringify(users));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(getUsers()));
   } else if (req.method === 'GET' && req.url?.startsWith('/api/users/')) {
-    const userId = req.url.split('/')[2];
+    const userId = req.url.split('/')[3];
 
     if (!isUuid(userId)) {
-      res.writeHead(400);
+      res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ message: 'Invalid user ID format' }));
     }
 
-    const user = users.find((user) => user.id === userId);
+    const user = findUserById(userId);
 
     if (user) {
-      res.writeHead(200);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(user));
     } else {
-      res.writeHead(404);
+      res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ message: 'User not found' }));
     }
   } else if (req.method === 'POST' && req.url === '/api/users') {
@@ -36,34 +41,34 @@ const server = http.createServer((req, res) => {
     });
 
     req.on('end', () => {
-      const { name, email, age } = JSON.parse(body);
+      const { username, age, hobbies } = JSON.parse(body);
 
-      if (!name || !email || typeof age !== 'number') {
-        res.writeHead(400);
+      if (!username || typeof age !== 'number' || !Array.isArray(hobbies)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ message: 'Missing required fields' }));
       }
 
       const newUser: User = {
         id: uuidv4(),
-        name,
-        email,
+        username,
         age,
+        hobbies,
       };
 
-      users.push(newUser);
+      addUser(newUser);
 
-      res.writeHead(201);
+      res.writeHead(201, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(newUser));
     });
   } else if (req.method === 'PUT' && req.url?.startsWith('/api/users/')) {
-    const userId = req.url.split('/')[2];
+    const userId = req.url.split('/')[3];
 
     if (!isUuid(userId)) {
-      res.writeHead(400);
+      res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ message: 'Invalid user ID format' }));
     }
 
-    const userIndex = users.findIndex((u) => u.id === userId);
+    const userIndex = findUserIndexById(userId);
 
     if (userIndex !== -1) {
       let body = '';
@@ -74,22 +79,46 @@ const server = http.createServer((req, res) => {
 
       req.on('end', () => {
         const updatedUser = JSON.parse(body);
+        const updatedUserWithId = { id: userId, ...updatedUser };
 
-        users[userIndex] = { id: userId, ...updatedUser };
-        res.writeHead(200);
-        res.end(JSON.stringify(users[userIndex]));
+        updateUser(userId, updatedUserWithId);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(updatedUserWithId));
       });
     } else {
-      res.writeHead(404);
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: 'User not found' }));
+    }
+  } else if (req.method === 'DELETE' && req.url?.startsWith('/api/users/')) {
+    const userId = req.url.split('/')[3];
+
+    if (!isUuid(userId)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Invalid user ID format' }));
+    }
+
+    const userIndex = findUserIndexById(userId);
+
+    if (userIndex !== -1) {
+      deleteUser(userId);
+      res.writeHead(204);
+      res.end();
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ message: 'User not found' }));
     }
   } else {
     // Handle other request methods or routes
-    res.writeHead(404);
+    res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: 'Route not found' }));
   }
-});
+};
 
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+export const startServer = () => {
+  const server = createServer(requestHandler);
+  server.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+};
+
+startServer();
