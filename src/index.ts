@@ -18,23 +18,23 @@ const PORT = process.env.PORT || 3000;
 const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
   if (req.method === 'GET' && req.url === '/api/users') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(getUsers()));
+    return res.end(JSON.stringify(getUsers()));
   } else if (req.method === 'GET' && req.url?.startsWith('/api/users/')) {
     const userId = req.url.split('/')[3];
 
     if (!isUuid(userId)) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: 'Invalid user ID format' }));
+      return res.end(JSON.stringify({ message: 'Invalid user ID format' }));
     }
 
     const user = findUserById(userId);
 
     if (user) {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(user));
+      return res.end(JSON.stringify(user));
     } else {
       res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: 'User not found' }));
+      return res.end(JSON.stringify({ message: 'User not found' }));
     }
   } else if (req.method === 'POST' && req.url === '/api/users') {
     let body = '';
@@ -48,7 +48,7 @@ const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
 
       if (!username || typeof age !== 'number' || !Array.isArray(hobbies)) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ message: 'Missing required fields' }));
+        return res.end(JSON.stringify({ message: 'Missing required fields' }));
       }
 
       const newUser: User = {
@@ -61,14 +61,14 @@ const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
       addUser(newUser);
 
       res.writeHead(201, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(newUser));
+      return res.end(JSON.stringify(newUser));
     });
   } else if (req.method === 'PUT' && req.url?.startsWith('/api/users/')) {
     const userId = req.url.split('/')[3];
 
     if (!isUuid(userId)) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: 'Invalid user ID format' }));
+      return res.end(JSON.stringify({ message: 'Invalid user ID format' }));
     }
 
     const userIndex = findUserIndexById(userId);
@@ -86,18 +86,18 @@ const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
 
         updateUser(userId, updatedUserWithId);
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(updatedUserWithId));
+        return res.end(JSON.stringify(updatedUserWithId));
       });
     } else {
       res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: 'User not found' }));
+      return res.end(JSON.stringify({ message: 'User not found' }));
     }
   } else if (req.method === 'DELETE' && req.url?.startsWith('/api/users/')) {
     const userId = req.url.split('/')[3];
 
     if (!isUuid(userId)) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: 'Invalid user ID format' }));
+      return res.end(JSON.stringify({ message: 'Invalid user ID format' }));
     }
 
     const userIndex = findUserIndexById(userId);
@@ -105,15 +105,15 @@ const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
     if (userIndex !== -1) {
       deleteUser(userId);
       res.writeHead(204);
-      res.end();
+      return res.end();
     } else {
       res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: 'User not found' }));
+      return res.end(JSON.stringify({ message: 'User not found' }));
     }
   } else {
     // Handle other request methods or routes
     res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: 'Route not found' }));
+    return res.end(JSON.stringify({ message: 'Route not found' }));
   }
 };
 
