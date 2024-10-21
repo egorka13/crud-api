@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
 import {
