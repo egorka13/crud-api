@@ -4,7 +4,7 @@
   "description": "Simple CRUD API using in-memory database underneath",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
+    "build": "tsc && webpack",
     "start:dev": "ts-node-dev src/index.ts",
     "start:prod": "npm run build && node dist/bundle.js",
     "start:multi": "ts-node src/cluster.ts"
@@ -29,7 +29,6 @@
     "prettier": "^3.3.3",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
-    "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.6.3",
